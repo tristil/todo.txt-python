@@ -37,6 +37,38 @@ class TestTodotxtParser(unittest.TestCase):
       'todo_dir' : self.test_path
       })
 
+  def test_writeData(self):
+    self.standard_setup()
+
+    data = {
+      'contexts' : {'home' : [1], 'work' : [2]},
+      'projects' : {'default' : [1], 'bigproject' : [2]},
+      'todos' :
+      {
+        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+          'item' : 'Get things done', 'completed': None},
+        2 : {'context' : 'work', 'project' : 'default', 'done' : True,
+          'item' : 'Get some other things done', 'completed': '2011-10-30'},
+      }
+    }
+
+    self.parser.setData(data)
+    self.parser.writeData();
+
+    data = self.parser.getRawData()
+
+    f = open(self.parser.getLocation('todo'), 'r')
+    todo_text = f.read()
+    f.close()
+
+    self.assertEqual(todo_text, 'Get things done @home\n')
+
+    f = open(self.parser.getLocation('done'), 'r')
+    done_text = f.read()
+    f.close()
+
+    self.assertEqual(done_text, 'x 2011-10-30 Get some other things done @work\n')
+
   def test_getRawData(self):
     self.standard_setup()
 

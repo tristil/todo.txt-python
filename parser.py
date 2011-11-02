@@ -80,6 +80,31 @@ class TodotxtParser:
 
         self.data['todos'][id] = row
 
+  def writeData(self):
+    todo_file = open(self.getLocation('todo'), 'w')
+    done_file = open(self.getLocation('done'), 'w')
+    
+    for [index, todo] in self.data['todos'].items():
+      line = ''
+      if todo['done'] == True:
+        line += 'x '
+      if todo['completed'] != None:
+        line += todo['completed'] + ' '
+      line += todo['item']
+      if todo['context'] != 'default':
+        line += ' @' + todo['context']
+      if todo['project'] != 'default':
+        line += ' +' + todo['project'] 
+      if todo['done'] == True:
+        done_file.write(line + '\n')
+      else:
+        todo_file.write(line + '\n')
+    todo_file.close()
+    done_file.close()
+
+  def setData(self, data):
+    self.data = data
+
   def getRawData(self):
     self.load()
     return self.data
