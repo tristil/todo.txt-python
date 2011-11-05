@@ -1,4 +1,4 @@
-import os, re, sys
+import os, re, sys, string, time
 
 # A parser to read the todo.txt file
 class TodotxtParser:
@@ -11,6 +11,41 @@ class TodotxtParser:
 
   def __init__(self):
     self.expandTodoDir()
+
+  def completeTodo(self, line_number):
+    line = self.getLine(line_number)
+    today = time.strftime('%Y-%m-%d') 
+    line = '\nx ' + today + ' ' + line
+    self.removeTodo(line_number)
+    todo_file = open(self.getLocation('done'), 'a')
+    todo_file.write(line)
+    todo_file.close()
+
+  def getLine(self, line_number):
+    todo_file = open(self.getLocation('todo'), 'r')
+    lines = todo_file.readlines()
+    todo_file.close()
+    return lines[line_number - 1]
+
+  def addTodo(self, data, todo_type = 'todo'):
+    todo_file = open(self.getLocation(todo_type), 'a')
+    new_todo = '\n' + data['item']
+    if data['context'] != None:
+      new_todo += " @" + data['context']
+    if data['project'] != None:
+      new_todo += " +" + data['project']
+    todo_file.write(new_todo)
+
+  def removeTodo(self, line_number):
+    todo_file = open(self.getLocation('todo'), 'r')
+    lines = todo_file.readlines()
+    lines = [line.strip() for line in lines]
+    todo_file.close()
+    lines.pop(line_number - 1)
+    todo_text = string.join(lines, '\n')
+    todo_file = open(self.getLocation('todo'), 'w')
+    todo_file.write(todo_text)
+    todo_file.close()
 
   def load(self):
     self.data = {

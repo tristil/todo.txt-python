@@ -12,22 +12,29 @@ class TestTodotxtParser(unittest.TestCase):
     self.parser = todotxt.TodotxtParser()
     os.mkdir(self.test_path)
 
-    self.todo_file = open(self.test_path + '/todo.txt', 'w')
-    self.done_file = open(self.test_path + '/done.txt', 'w')
+    self.todo_file = self.test_path + '/todo.txt'
+    self.done_file = self.test_path + '/done.txt'
 
   def tearDown(self):
     shutil.rmtree(self.test_path)
 
   def populate_file(self, file, text):
-    file.write(text)
-    file.close()
+    todo_file = open(file, 'w')
+    todo_file.write(text)
+    todo_file.close()
+
+  def read_file(self, file):
+    todo_file = open(file, 'r')
+    text = todo_file.read()
+    todo_file.close()
+    return text
 
   def standard_setup(self):
     todo_text = """\
-    Get things done @home
-    Get some other things done @work
-    Get yet other things done @work +bigproject\
-    """
+Get things done @home
+Get some other things done @work
+Get yet other things done @work +bigproject\
+"""
 
     done_text = "x 2011-10-30 Got things done @work +bigproject"
     self.populate_file(self.todo_file, todo_text)
@@ -36,6 +43,46 @@ class TestTodotxtParser(unittest.TestCase):
     self.parser.setConfig({
       'todo_dir' : self.test_path
       })
+
+  def test_completeTodo(self):
+    self.standard_setup()
+    self.parser.completeTodo(3)
+    text = self.read_file(self.todo_file)
+    new_text = """\
+Get things done @home
+Get some other things done @work\
+"""
+    self.assertEqual(text, new_text)
+    text = self.read_file(self.done_file)
+    pattern = r'\nx \d\d\d\d-\d\d-\d\d Get yet other things done @work \+bigproject'
+    self.assertTrue(re.search(pattern, text))
+
+  def test_removeTodo(self):
+    self.standard_setup()
+    self.parser.removeTodo(3)
+    text = self.read_file(self.todo_file)
+    new_text = """\
+Get things done @home
+Get some other things done @work\
+"""
+    self.assertEqual(text, new_text)
+  
+  def test_addTodo(self):
+    self.standard_setup()
+    self.parser.addTodo( { 
+      'item'    : 'A brand new thing to do', 
+      'context' : 'newcontext', 
+      'project' : 'newproject'
+      }
+    )
+    text = self.read_file(self.todo_file)
+    new_text = """\
+Get things done @home
+Get some other things done @work
+Get yet other things done @work +bigproject
+A brand new thing to do @newcontext +newproject\
+"""
+    self.assertEqual(text, new_text)
 
   def test_writeData(self):
     self.standard_setup()
