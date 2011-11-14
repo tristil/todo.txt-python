@@ -66,10 +66,39 @@ Get things done @home
 Get some other things done @work\
 """
     self.assertEqual(text, new_text)
-  
+
   def test_addTodo(self):
     self.standard_setup()
+    self.parser.load()
     self.parser.addTodo( { 
+      'item'    : 'A brand new thing to do', 
+      'context' : 'newcontext', 
+      'project' : 'newproject'
+      }
+    )
+
+    expected_data = {
+        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+          'item' : 'Get things done', 'completed': None},
+        2 : {'context' : 'work', 'project' : 'default', 'done' : False,
+          'item' : 'Get some other things done', 'completed': None},
+        3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
+          'item' : 'Get yet other things done', 'completed': None},
+        4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+          'item' : 'Got things done', 'completed': '2011-10-30'},
+        5 : {'item' : 'A brand new thing to do', 'context' : 'newcontext', 'project' : 'newproject', 'done' : False}
+    }
+
+    self.assertEqual(self.parser.getTodos(), expected_data)
+    self.assertEqual(self.parser.data['ids'], [1,2,3,4,5])
+
+    self.assertEqual(self.parser.getContexts(), {
+      'home' : [1], 'work' : [2,3,4], 'newcontext' : [5]})
+    self.assertEqual(self.parser.getProjects(), {'default' : [1,2], 'bigproject' : [3,4], 'newproject' : [5]})
+  
+  def test_addTodoLine(self):
+    self.standard_setup()
+    self.parser.addTodoLine( { 
       'item'    : 'A brand new thing to do', 
       'context' : 'newcontext', 
       'project' : 'newproject'
@@ -133,7 +162,8 @@ A brand new thing to do @newcontext +newproject\
           'item' : 'Get yet other things done', 'completed': None},
         4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
           'item' : 'Got things done', 'completed': '2011-10-30'},
-      }
+      },
+      'ids' : [1,2,3,4]
     }
     self.assertEqual(data, expected_data)
 
