@@ -15,6 +15,8 @@ class TodotxtParser:
   report_file ="$TODO_DIR/report.txt"
   todo_actions_dir ="$TODO_DIR/actions"
 
+  data = {}
+
   def __init__(self):
     self.expandTodoDir()
 
@@ -27,16 +29,25 @@ class TodotxtParser:
     todo_file.write(line)
     todo_file.close()
 
+  def fetchRemoteData(self):
+    self.remote_todos = self.remote_client.getTodos()
+
   def importFromTracks(self, tracks_client):
-    self.tracks_client = tracks_client
-    todos = self.tracks_client.getTodos()
-    for todo in todos:
+    self.remote_client = tracks_client
+    self.fetchRemoteData()
+    count = 0
+    for todo in self.remote_todos:
       new_todo = {}
       new_todo['tracks_id'] = todo['id']
       for [old_name, new_name] in self.tracks_mapping.items():
+        count += 1
         if old_name in todo:
           new_todo[new_name] = todo[old_name]
+
+      if todo['state'] == 'active':
         self.addTodo(new_todo)
+      else:
+        self.addTodo(new_todo, 'done')
 
   def getLine(self, line_number):
     todo_file = open(self.getLocation('todo'), 'r')
@@ -74,13 +85,19 @@ class TodotxtParser:
   def addProject(self, project):
     self.data['projects'][project] = []
 
-  def addTodoLine(self, data, todo_type = 'todo'):
-    todo_file = open(self.getLocation(todo_type), 'a')
+  def makeTodoLine(self, data):
     new_todo = '\n' + data['item']
     if data['context'] != None:
       new_todo += " @" + data['context']
     if data['project'] != None:
       new_todo += " +" + data['project']
+    if 'tracks_id' in data:
+      new_todo += " tid:" + data['tracks_id']
+    return new_todo
+
+  def addTodoLine(self, data, todo_type = 'todo'):
+    todo_file = open(self.getLocation(todo_type), 'a')
+    new_todo = self.makeTodoLine(data)
     todo_file.write(new_todo)
 
   def removeTodo(self, line_number):
@@ -124,67 +141,68 @@ class TodotxtParser:
     for item_list in [todo_items, done_items]:
       for item in item_list:
         id += 1
-
         self.data['ids'].append(id)
-
-        pattern = r'@(\w+?)( |$)'
-        m = re.search(pattern, item)
-        if m and m.group(1):
-          context = m.group(1)
-        else:
-          context = 'default'
-        item = re.sub(pattern, '', item)
-
-        pattern = r'\+(\w+?)( |$)'
-        m = re.search(pattern, item)
-        if m and m.group(1):
-          project = m.group(1)
-        else:
-          project = 'default'
-        item = re.sub(pattern, '', item)
-
-        pattern = r'^x '
-        m = re.search(pattern, item, re.IGNORECASE)
-        if m:
-          done = True
-        else:
-          done = False
-        item = re.sub(pattern, '', item)
-
-        pattern = r'^(\d\d\d\d-\d\d-\d\d)'
-        m = re.search(pattern, item)
-        if m and m.group(1):
-          completed = m.group(1)
-        else:
-          completed = None
-        item = re.sub(pattern, '', item)
-
-        item = item.strip()
-
-        if project not in self.data['projects']:
-          self.data['projects'][project] = [id]
-        else:
-          self.data['projects'][project].append(id)
-
-        if context not in self.data['contexts']:
-          self.data['contexts'][context] = [id]
-        else:
-          self.data['contexts'][context].append(id)
-
-        row = { 'item' : item,
-                'done' : done,
-                'context' : context,
-                'project' : project,
-                'completed' : completed,
-              }
-
+        row = self.parseLine(item)
         self.data['todos'][id] = row
+
+        if row['project'] not in self.data['projects']:
+          self.data['projects'][row['project']] = [id]
+        else:
+          self.data['projects'][row['project']].append(id)
+
+        if row['context'] not in self.data['contexts']:
+          self.data['contexts'][row['context']] = [id]
+        else:
+          self.data['contexts'][row['context']].append(id)
+
+  def parseLine(self, item):
+    pattern = r'@(\w+?)( |$)'
+    m = re.search(pattern, item)
+    if m and m.group(1):
+      context = m.group(1)
+    else:
+      context = 'default'
+    item = re.sub(pattern, '', item)
+
+    pattern = r'\+(\w+?)( |$)'
+    m = re.search(pattern, item)
+    if m and m.group(1):
+      project = m.group(1)
+    else:
+      project = 'default'
+    item = re.sub(pattern, '', item)
+
+    pattern = r'^x '
+    m = re.search(pattern, item, re.IGNORECASE)
+    if m:
+      done = True
+    else:
+      done = False
+    item = re.sub(pattern, '', item)
+
+    pattern = r'^(\d\d\d\d-\d\d-\d\d)'
+    m = re.search(pattern, item)
+    if m and m.group(1):
+      completed = m.group(1)
+    else:
+      completed = None
+    item = re.sub(pattern, '', item)
+
+    item = item.strip()
+    
+    row = { 'item' : item,
+            'done' : done,
+            'context' : context,
+            'project' : project,
+            'completed' : completed,
+          }
+    return row
 
   def makeLine(self,todo):
     line = ''
     if todo['done'] == True:
       line += 'x '
-    if todo['completed'] != None:
+    if 'completed' in todo and todo['completed'] != None:
       line += todo['completed'] + ' '
     line += todo['item']
     if todo['context'] != 'default':
@@ -193,14 +211,15 @@ class TodotxtParser:
       line += ' +' + todo['project'] 
     return line
 
-  def printTodos(self, type = 'todo'):
+  def getTodoLines(self, type = 'todo'):
+    lines = ""
     for [index, todo] in self.data['todos'].items():
       line = self.makeLine(todo)
-
       if todo['done'] == True and type =='done':
-        print line
+        lines += line + "\n"
       elif todo['done'] == False and type == 'todo':
-        print line
+        lines += line + "\n"
+    return lines.strip()
 
   def writeData(self):
     todo_file = open(self.getLocation('todo'), 'w')
@@ -220,7 +239,6 @@ class TodotxtParser:
     self.data = data
 
   def getRawData(self):
-    self.load()
     return self.data
 
   def getRawTodos(self, type = 'todo'):
@@ -257,7 +275,3 @@ class TodotxtParser:
     for key, value in data.items():
       setattr(self, key, value)
     self.expandTodoDir()
-
-if __name__ == '__main__':
-  todo_parser = TodotxtParser()
-  print todo_parser.getRawData()

@@ -1,9 +1,11 @@
 import unittest
 import os, sys, shutil, re
+from mock import Mock
 
 sys.path.insert(0, os.path.abspath(os.path.abspath(__file__ )+ "/../../../"))
 
 import todotxt
+import tracks
 
 class TestTodotxtParser(unittest.TestCase):
   def setUp(self):
@@ -43,6 +45,59 @@ Get yet other things done @work +bigproject\
     self.parser.setConfig({
       'todo_dir' : self.test_path
       })
+
+  def test_getTodoLines(self):
+    self.test_importFromTracks()
+    expected_text = """\
+Get things done @home
+Get some other things done @work
+Get yet other things done @work +bigproject
+Add task text to Chromodoro @home +Chromodoro
+Fix retrieve password scenarios @home +Diaspora
+[Significant coding] for Diaspora @home +Diaspora\
+"""
+
+    self.assertEqual(self.parser.getTodoLines(), expected_text)
+
+  def test_importFromTracks(self):
+    client = tracks.TracksClient()
+
+    import_data = [
+        {u'description': u'Add task text to Chromodoro', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'Chromodoro', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'293'}, 
+        {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
+        {u'description': u'[Significant coding] for Diaspora', u'tags': u'\n      ', u'updated-at': u'2010-11-15T00:29:35-05:00', u'created-at': u'2010-11-15T00:26:18-05:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'275'}, 
+    ]
+
+    client.getTodos = Mock(return_value=import_data)
+    self.standard_setup()
+    self.parser.load()
+    self.parser.importFromTracks(client)
+    expected_data = {
+        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+          'item' : 'Get things done', 'completed': None},
+        2 : {'context' : 'work', 'project' : 'default', 'done' : False,
+          'item' : 'Get some other things done', 'completed': None},
+        3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
+          'item' : 'Get yet other things done', 'completed': None},
+        4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+          'item' : 'Got things done', 'completed': '2011-10-30'},
+        5: {'context': u'home',
+          'done': False,
+          'item': u'Add task text to Chromodoro',
+          'project': u'Chromodoro',
+          'tracks_id': u'293'},
+        6: {'context': u'home',
+          'done': False,
+          'item': u'Fix retrieve password scenarios',
+          'project': u'Diaspora',
+          'tracks_id': u'292'},
+        7: {'context': u'home',
+          'done': False,
+          'item': u'[Significant coding] for Diaspora',
+          'project': u'Diaspora',
+          'tracks_id': u'275'},
+        }
+    self.assertEqual(self.parser.getTodos(), expected_data)
 
   def test_completeTodo(self):
     self.standard_setup()
@@ -130,7 +185,7 @@ A brand new thing to do @newcontext +newproject\
 
     self.parser.setData(data)
     self.parser.writeData();
-
+    self.parser.load()
     data = self.parser.getRawData()
 
     f = open(self.parser.getLocation('todo'), 'r')
@@ -147,7 +202,7 @@ A brand new thing to do @newcontext +newproject\
 
   def test_getRawData(self):
     self.standard_setup()
-
+    self.parser.load()
     data = self.parser.getRawData()
     expected_data = {
       'contexts' : {'home' : [1], 'work' : [2,3,4]},
