@@ -32,11 +32,21 @@ class TodotxtParser:
   def fetchRemoteData(self):
     self.remote_todos = self.remote_client.getTodos()
 
+  def localTodoExists(self, tracks_id):
+    todos = self.getTodos()
+    for [index, todo] in todos.items():
+      if todo['tracks_id'] == tracks_id:
+        return True
+    return False
+
   def importFromTracks(self, tracks_client):
     self.remote_client = tracks_client
     self.fetchRemoteData()
     count = 0
     for todo in self.remote_todos:
+      if self.localTodoExists(todo['id']):
+        continue
+
       new_todo = {}
       new_todo['tracks_id'] = todo['id']
       for [old_name, new_name] in self.tracks_mapping.items():

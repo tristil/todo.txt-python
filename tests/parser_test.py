@@ -46,6 +46,36 @@ A task from Tracks @work +bigproject tid:200\
       'todo_dir' : self.test_path
       })
 
+  def test_importAndDontOverwrite(self):
+    client = tracks.TracksClient()
+
+    import_data = [
+        {u'description': u'A task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'work', u'context-id': u'2', u'id': u'200'}, 
+        {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
+    ]
+
+    client.getTodos = Mock(return_value=import_data)
+    self.standard_setup()
+    self.parser.load()
+    self.parser.importFromTracks(client)
+    expected_data = {
+        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+          'item' : 'Get things done', 'completed': None, 'tracks_id' : None},
+        2 : {'context' : 'work', 'project' : 'default', 'done' : False,
+          'item' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
+        3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
+          'item' : 'A task from Tracks', 'completed': None, 'tracks_id' : '200'},
+        4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+          'item' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
+        5: {'context': u'home',
+          'done': False,
+          'item': u'Fix retrieve password scenarios',
+          'project': u'Diaspora',
+          'tracks_id': u'292'},
+        }
+    self.assertEqual(self.parser.getTodos(), expected_data)
+
+
   def test_importAndWriteData(self):
     self.test_importFromTracks()
     expected_text = """\
