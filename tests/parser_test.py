@@ -46,6 +46,25 @@ A task from Tracks @work +bigproject tid:200\
       'todo_dir' : self.test_path
       })
 
+  def test_importAndWriteData(self):
+    self.test_importFromTracks()
+    expected_text = """\
+Get things done @home
+Get some other things done @work
+A task from Tracks @work +bigproject tid:200
+Add task text to Chromodoro @home +Chromodoro tid:293
+Fix retrieve password scenarios @home +Diaspora tid:292
+[Significant coding] for Diaspora @home +Diaspora tid:275\
+"""
+    self.parser.writeData()
+
+    f = open(self.parser.getLocation('todo'), 'r')
+    todo_text = f.read()
+    f.close()
+
+    self.assertEqual(todo_text, expected_text)
+
+
   def test_getTodoLines(self):
     self.test_importFromTracks()
     expected_text = """\
@@ -193,13 +212,13 @@ A brand new thing to do @newcontext +newproject\
     todo_text = f.read()
     f.close()
 
-    self.assertEqual(todo_text, 'Get things done @home\n')
+    self.assertEqual(todo_text, 'Get things done @home')
 
     f = open(self.parser.getLocation('done'), 'r')
     done_text = f.read()
     f.close()
 
-    self.assertEqual(done_text, 'x 2011-10-30 Get some other things done @work\n')
+    self.assertEqual(done_text, 'x 2011-10-30 Get some other things done @work')
 
   def test_getRawData(self):
     self.standard_setup()

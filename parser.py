@@ -114,8 +114,17 @@ class TodotxtParser:
     todo_file.write(todo_text)
     todo_file.close()
 
-  def getTodos(self, todo_type = 'todo'):
-    return self.data['todos']
+  def getTodos(self, todo_type = None):
+    todos = self.data['todos'].items()
+    todo_set = {}
+    for [index, todo] in todos:
+      if todo_type == None:
+        todo_set[index] = todo
+      elif todo['done'] == False and todo_type == 'todo':
+        todo_set[index] = todo
+      elif todo['done'] == True and todo_type == 'done':
+        todo_set[index] = todo
+    return todo_set
 
   def getData(self):
     return self.data
@@ -237,18 +246,21 @@ class TodotxtParser:
     return lines.strip()
 
   def writeData(self):
-    todo_file = open(self.getLocation('todo'), 'w')
-    done_file = open(self.getLocation('done'), 'w')
-    
-    for [index, todo] in self.data['todos'].items():
-      line = self.makeLine(todo)
+    todo_todos = self.getTodos('todo')
+    self.writeTodosToFile(todo_todos)
+    done_todos = self.getTodos('done')
+    self.writeTodosToFile(done_todos, 'done')
 
-      if todo['done'] == True:
-        done_file.write(line + '\n')
-      else:
-        todo_file.write(line + '\n')
+  def writeTodosToFile(self, todos, todo_type = 'todo'):
+    todo_file = open(self.getLocation(todo_type), 'w')
+    count = 0
+    for [index, todo] in todos.items():
+      count += 1
+      line = self.makeLine(todo)
+      todo_file.write(line)
+      if count != len(todos):
+        todo_file.write('\n')
     todo_file.close()
-    done_file.close()
 
   def setData(self, data):
     self.data = data
