@@ -68,6 +68,9 @@ class TodotxtParser:
     if 'context' not in data:
       data['context'] = 'default'
 
+    if 'tracks_id' not in data:
+      data['tracks_id'] = None
+
     if data['context'] not in self.data['contexts']:
       self.addContext(data['context'])
     self.data['contexts'][data['context']].append(next_id)
@@ -162,7 +165,7 @@ class TodotxtParser:
       context = m.group(1)
     else:
       context = 'default'
-    item = re.sub(pattern, '', item)
+    item = re.sub(pattern, '', item).strip()
 
     pattern = r'\+(\w+?)( |$)'
     m = re.search(pattern, item)
@@ -170,7 +173,7 @@ class TodotxtParser:
       project = m.group(1)
     else:
       project = 'default'
-    item = re.sub(pattern, '', item)
+    item = re.sub(pattern, '', item).strip()
 
     pattern = r'^x '
     m = re.search(pattern, item, re.IGNORECASE)
@@ -178,7 +181,7 @@ class TodotxtParser:
       done = True
     else:
       done = False
-    item = re.sub(pattern, '', item)
+    item = re.sub(pattern, '', item).strip()
 
     pattern = r'^(\d\d\d\d-\d\d-\d\d)'
     m = re.search(pattern, item)
@@ -186,15 +189,23 @@ class TodotxtParser:
       completed = m.group(1)
     else:
       completed = None
-    item = re.sub(pattern, '', item)
+    item = re.sub(pattern, '', item).strip()
 
-    item = item.strip()
+    pattern = r'tid\:(\w+)( |$)'
+    m = re.search(pattern, item)
+    if m and m.group(1):
+      tracks_id = m.group(1)
+    else:
+      tracks_id = None
+    item = re.sub(pattern, '', item).strip()
+
     
     row = { 'item' : item,
             'done' : done,
             'context' : context,
             'project' : project,
             'completed' : completed,
+            'tracks_id' : tracks_id
           }
     return row
 
@@ -209,6 +220,10 @@ class TodotxtParser:
       line += ' @' + todo['context']
     if todo['project'] != 'default':
       line += ' +' + todo['project'] 
+
+    if 'tracks_id' in todo and todo['tracks_id'] != None:
+      line += ' tid:' + todo['tracks_id'] 
+
     return line
 
   def getTodoLines(self, type = 'todo'):

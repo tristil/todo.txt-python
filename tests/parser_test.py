@@ -35,7 +35,7 @@ class TestTodotxtParser(unittest.TestCase):
     todo_text = """\
 Get things done @home
 Get some other things done @work
-Get yet other things done @work +bigproject\
+A task from Tracks @work +bigproject tid:200\
 """
 
     done_text = "x 2011-10-30 Got things done @work +bigproject"
@@ -51,10 +51,10 @@ Get yet other things done @work +bigproject\
     expected_text = """\
 Get things done @home
 Get some other things done @work
-Get yet other things done @work +bigproject
-Add task text to Chromodoro @home +Chromodoro
-Fix retrieve password scenarios @home +Diaspora
-[Significant coding] for Diaspora @home +Diaspora\
+A task from Tracks @work +bigproject tid:200
+Add task text to Chromodoro @home +Chromodoro tid:293
+Fix retrieve password scenarios @home +Diaspora tid:292
+[Significant coding] for Diaspora @home +Diaspora tid:275\
 """
 
     self.assertEqual(self.parser.getTodoLines(), expected_text)
@@ -74,18 +74,19 @@ Fix retrieve password scenarios @home +Diaspora
     self.parser.importFromTracks(client)
     expected_data = {
         1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
-          'item' : 'Get things done', 'completed': None},
+          'item' : 'Get things done', 'completed': None, 'tracks_id' : None},
         2 : {'context' : 'work', 'project' : 'default', 'done' : False,
-          'item' : 'Get some other things done', 'completed': None},
+          'item' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
         3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
-          'item' : 'Get yet other things done', 'completed': None},
+          'item' : 'A task from Tracks', 'completed': None, 'tracks_id' : '200'},
         4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
-          'item' : 'Got things done', 'completed': '2011-10-30'},
+          'item' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
         5: {'context': u'home',
           'done': False,
           'item': u'Add task text to Chromodoro',
           'project': u'Chromodoro',
-          'tracks_id': u'293'},
+          'tracks_id': u'293'
+          },
         6: {'context': u'home',
           'done': False,
           'item': u'Fix retrieve password scenarios',
@@ -109,7 +110,7 @@ Get some other things done @work\
 """
     self.assertEqual(text, new_text)
     text = self.read_file(self.done_file)
-    pattern = r'\nx \d\d\d\d-\d\d-\d\d Get yet other things done @work \+bigproject'
+    pattern = r'\nx \d\d\d\d-\d\d-\d\d A task from Tracks @work \+bigproject'
     self.assertTrue(re.search(pattern, text))
 
   def test_removeTodo(self):
@@ -134,14 +135,14 @@ Get some other things done @work\
 
     expected_data = {
         1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
-          'item' : 'Get things done', 'completed': None},
+          'item' : 'Get things done', 'completed': None, 'tracks_id' : None},
         2 : {'context' : 'work', 'project' : 'default', 'done' : False,
-          'item' : 'Get some other things done', 'completed': None},
+          'item' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
         3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
-          'item' : 'Get yet other things done', 'completed': None},
+          'item' : 'A task from Tracks', 'completed': None, 'tracks_id': '200'},
         4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
-          'item' : 'Got things done', 'completed': '2011-10-30'},
-        5 : {'item' : 'A brand new thing to do', 'context' : 'newcontext', 'project' : 'newproject', 'done' : False}
+          'item' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
+        5 : {'item' : 'A brand new thing to do', 'context' : 'newcontext', 'project' : 'newproject', 'done' : False, 'tracks_id' : None}
     }
 
     self.assertEqual(self.parser.getTodos(), expected_data)
@@ -163,7 +164,7 @@ Get some other things done @work\
     new_text = """\
 Get things done @home
 Get some other things done @work
-Get yet other things done @work +bigproject
+A task from Tracks @work +bigproject tid:200
 A brand new thing to do @newcontext +newproject\
 """
     self.assertEqual(text, new_text)
@@ -177,9 +178,9 @@ A brand new thing to do @newcontext +newproject\
       'todos' :
       {
         1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
-          'item' : 'Get things done', 'completed': None},
+          'item' : 'Get things done', 'completed': None, 'tracks_id' : None},
         2 : {'context' : 'work', 'project' : 'default', 'done' : True,
-          'item' : 'Get some other things done', 'completed': '2011-10-30'},
+          'item' : 'Get some other things done', 'completed': '2011-10-30', 'tracks_id': None},
       }
     }
 
@@ -210,13 +211,13 @@ A brand new thing to do @newcontext +newproject\
       'todos' :
       {
         1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
-          'item' : 'Get things done', 'completed': None},
+          'item' : 'Get things done', 'completed': None, 'tracks_id' : None},
         2 : {'context' : 'work', 'project' : 'default', 'done' : False,
-          'item' : 'Get some other things done', 'completed': None},
+          'item' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
         3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
-          'item' : 'Get yet other things done', 'completed': None},
+          'item' : 'A task from Tracks', 'completed': None, 'tracks_id' : '200'},
         4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
-          'item' : 'Got things done', 'completed': '2011-10-30'},
+          'item' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
       },
       'ids' : [1,2,3,4]
     }
