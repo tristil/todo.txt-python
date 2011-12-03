@@ -8,6 +8,11 @@ import todotxt
 import tracks
 
 class TestTodotxtParser(unittest.TestCase):
+
+  todos_data = None
+  projects_data = None
+  contexts_data = None
+
   def setUp(self):
     self.maxDiff = None
     self.test_path = '/tmp/.todotest'
@@ -46,18 +51,73 @@ A task from Tracks @work +bigproject tid:200\
       'todo_dir' : self.test_path
       })
 
-  def test_importAndDontOverwrite(self):
-    client = tracks.TracksClient()
+  def setup_remote_client(self):
+    if self.todos_data == None:
+      self.todos_data = [
+          {u'description': u'A task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'200'}, 
+          {u'description': u'Another task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'201'}, 
+          {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'newproject', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
+      ]
 
-    import_data = [
+    if self.projects_data == None:
+      self.projects_data = [
+          {u'description': u'Pretty big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'newproject'},
+          {u'description': u'Another big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'anotherproject'}
+      ]
+
+    if self.contexts_data == None:
+      self.contexts_data = [
+          {u'hide': u'false', u'name': u'work', u'updated-at': u'2008-08-17T22:47:05-04:00', u'created-at': u'2008-08-17T22:47:05-04:00', u'position': u'1', u'id': u'1'}, 
+          {u'hide': u'false', u'name': u'home', u'updated-at': u'2008-08-17T22:56:22-04:00', u'created-at': u'2008-08-17T22:56:22-04:00', u'position': u'2', u'id': u'2'}
+      ]
+
+    self.client = tracks.TracksClient()
+    self.client.setOptions({'url': 'http://tracks.example.com', 'username': 'user', 'password': 'password'})
+    self.client.getTodos = Mock(return_value=self.todos_data)
+    self.client.addProject = Mock(return_value=True)
+    self.client.addContext = Mock(return_value=True)
+    self.client.getProjects = Mock(return_value=self.projects_data)
+    self.client.getContexts = Mock(return_value=self.contexts_data)
+
+    self.todos_data = None
+    self.projects_data = None
+    self.contexts_data = None
+
+  def test_importAndUpdateContexts(self):
+    self.setup_remote_client()
+
+    self.standard_setup()
+    self.parser.load()
+    self.parser.importFromTracks(self.client)
+    self.parser.exportToTracks(self.client)
+    self.client.addContext.assert_called_once_with({'name' : 'brandnewcontext'})
+    self.assertEqual(self.client.addContext.call_count, 1)
+
+  def test_importAndUpdateProjects(self):
+    self.setup_remote_client()
+
+    self.standard_setup()
+    self.parser.load()
+    self.parser.importFromTracks(self.client)
+    self.parser.exportToTracks(self.client)
+    self.client.addProject.assert_called_once_with({'name' : 'bigproject'})
+    self.assertEqual(self.client.addProject.call_count, 1)
+
+  def test_importAndDontOverwrite(self):
+    self.projects_data = [
+        {u'description': u'Pretty big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'newproject'},
+        {u'description': u'Another big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'anotherproject'}
+    ]
+    self.todos_data = [
         {u'description': u'A task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'work', u'context-id': u'2', u'id': u'200'}, 
         {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
     ]
 
-    client.getTodos = Mock(return_value=import_data)
+    self.setup_remote_client()
+
     self.standard_setup()
     self.parser.load()
-    self.parser.importFromTracks(client)
+    self.parser.importFromTracks(self.client)
     expected_data = {
         1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
           'item' : 'Get things done', 'completed': None, 'tracks_id' : None},
@@ -109,18 +169,22 @@ Fix retrieve password scenarios @home +Diaspora tid:292
     self.assertEqual(self.parser.getTodoLines(), expected_text)
 
   def test_importFromTracks(self):
-    client = tracks.TracksClient()
-
-    import_data = [
+    self.todos_data = [
         {u'description': u'Add task text to Chromodoro', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'Chromodoro', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'293'}, 
         {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
         {u'description': u'[Significant coding] for Diaspora', u'tags': u'\n      ', u'updated-at': u'2010-11-15T00:29:35-05:00', u'created-at': u'2010-11-15T00:26:18-05:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'275'}, 
     ]
 
-    client.getTodos = Mock(return_value=import_data)
+    self.projects_data = [
+        {u'description': u'Pretty big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'newproject'},
+        {u'description': u'Another big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'anotherproject'}
+    ]
+
+    self.setup_remote_client()
+
     self.standard_setup()
     self.parser.load()
-    self.parser.importFromTracks(client)
+    self.parser.importFromTracks(self.client)
     expected_data = {
         1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
           'item' : 'Get things done', 'completed': None, 'tracks_id' : None},

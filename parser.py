@@ -15,9 +15,14 @@ class TodotxtParser:
   report_file ="$TODO_DIR/report.txt"
   todo_actions_dir ="$TODO_DIR/actions"
 
+  verbose = False
+
   data = {}
 
-  def __init__(self):
+  def __init__(self, **kargs):
+    if 'verbose' in kargs and kargs['verbose'] == True:
+      self.verbose = True
+
     self.expandTodoDir()
 
   def completeTodo(self, line_number):
@@ -31,6 +36,8 @@ class TodotxtParser:
 
   def fetchRemoteData(self):
     self.remote_todos = self.remote_client.getTodos()
+    self.remote_projects = self.remote_client.getProjects()
+    self.remote_contexts = self.remote_client.getContexts()
 
   def localTodoExists(self, tracks_id):
     todos = self.getTodos()
@@ -39,7 +46,35 @@ class TodotxtParser:
         return True
     return False
 
+  def exportToTracks(self, tracks_client, refetch = False):
+    if refetch:
+      self.fetchRemoteData()
+
+    remote_projects = [remote_project['name'] for remote_project in self.remote_projects]
+
+    added_projects = ['default']
+
+    for project in self.getProjects():
+      if project not in remote_projects and project not in added_projects:
+        if self.verbose: 
+          print "Adding local project %s to remote Tracks instance" % project
+
+        tracks_client.addProject({'name' : project})
+        added_projects.append(project)
+
+    added_contexts = ['default']
+    remote_contexts = [remote_context['name'] for remote_context in self.remote_contexts]
+    for context in self.getContexts():
+      if context not in remote_contexts and context not in added_contexts:
+        if self.verbose: 
+          print "Adding local context %s to remote Tracks instance" % context
+        tracks_client.addContext({'name' : context})
+        added_contexts.append(context)
+      
   def importFromTracks(self, tracks_client):
+    if self.verbose: 
+      print "Contacting remote Tracks instance"
+
     self.remote_client = tracks_client
     self.fetchRemoteData()
     count = 0
@@ -55,8 +90,13 @@ class TodotxtParser:
           new_todo[new_name] = todo[old_name]
 
       if todo['state'] == 'active':
+        if self.verbose: 
+          print "Adding active todo"
+
         self.addTodo(new_todo)
       else:
+        if self.verbose: 
+          print "Adding completed todo"
         self.addTodo(new_todo, 'done')
 
   def getLine(self, line_number):
