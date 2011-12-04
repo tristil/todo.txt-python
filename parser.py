@@ -4,7 +4,7 @@ import os, re, sys, string, time
 class TodotxtParser:
 
   tracks_mapping = {
-      'description' : 'item',
+      'description' : 'description',
       'context' : 'context',
       'project' : 'project',
   }
@@ -70,6 +70,14 @@ class TodotxtParser:
           print "Adding local context %s to remote Tracks instance" % context
         tracks_client.addContext({'name' : context})
         added_contexts.append(context)
+
+    remote_todos = [remote_todo['description'] for remote_todo in self.remote_todos]
+    todos = self.getTodos().items()
+    for [index, todo] in todos:
+      tracks_id = None
+      if todo['description'] not in remote_todos and todo['tracks_id'] == None:
+        tracks_id = tracks_client.addTodo(todo)
+        self.data['todos'][index]['tracks_id'] = str(tracks_id)
       
   def importFromTracks(self, tracks_client):
     if self.verbose: 
@@ -139,7 +147,7 @@ class TodotxtParser:
     self.data['projects'][project] = []
 
   def makeTodoLine(self, data):
-    new_todo = '\n' + data['item']
+    new_todo = '\n' + data['description']
     if data['context'] != None:
       new_todo += " @" + data['context']
     if data['project'] != None:
@@ -259,7 +267,7 @@ class TodotxtParser:
     item = re.sub(pattern, '', item).strip()
 
     
-    row = { 'item' : item,
+    row = { 'description' : item,
             'done' : done,
             'context' : context,
             'project' : project,
@@ -274,7 +282,7 @@ class TodotxtParser:
       line += 'x '
     if 'completed' in todo and todo['completed'] != None:
       line += todo['completed'] + ' '
-    line += todo['item']
+    line += todo['description']
     if todo['context'] != 'default':
       line += ' @' + todo['context']
     if todo['project'] != 'default':
