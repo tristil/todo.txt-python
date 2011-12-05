@@ -89,6 +89,35 @@ A task from Tracks @work +bigproject tid:200\
     self.projects_data = None
     self.contexts_data = None
 
+  def test_updateTodosDontCreateDuplicateRemoteTodo(self):
+    self.todos_data = [
+          {u'description': u'Get things done', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'200'}, 
+          {u'description': u'Another task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'201'}, 
+          {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'newproject', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
+    ]
+
+    self.setup_remote_client()
+
+    self.standard_setup()
+    self.parser.load()
+    self.parser.importFromTracks(self.client)
+    self.parser.exportToTracks(self.client)
+
+    self.assertEqual(self.client.addTodo.call_count, 2)
+    self.parser.writeData()
+    self.parser.load()
+    self.assertEqual(self.parser.getTodos(), 
+    {
+      1: {'description': 'Get things done', 'completed': None, 'tracks_id': '200', 'project': 'default', 'done': False, 'context': 'home'},
+      2: {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
+      3: {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
+      4: {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
+      5: {'completed': None, 'context': 'home', 'description': 'Fix retrieve password scenarios', 'done': False, 'project': 'newproject', 'tracks_id': '292'},
+      6: {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'}
+    }
+    )
+
+
   def test_importAndUpdateTodos(self):
     self.setup_remote_client()
 

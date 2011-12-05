@@ -39,6 +39,13 @@ class TodotxtParser:
     self.remote_projects = self.remote_client.getProjects()
     self.remote_contexts = self.remote_client.getContexts()
 
+  def localTodoHasSameDescription(self,description):
+    todos = self.getTodos()
+    for [index, todo] in todos.items():
+      if todo['description'] == description:
+        return index 
+    return False
+
   def localTodoExists(self, tracks_id):
     todos = self.getTodos()
     for [index, todo] in todos.items():
@@ -50,10 +57,8 @@ class TodotxtParser:
     if refetch:
       self.fetchRemoteData()
 
-    remote_projects = [remote_project['name'] for remote_project in self.remote_projects]
-
     added_projects = ['default']
-
+    remote_projects = [remote_project['name'] for remote_project in self.remote_projects]
     for project in self.getProjects():
       if project not in remote_projects and project not in added_projects:
         if self.verbose: 
@@ -76,6 +81,8 @@ class TodotxtParser:
     for [index, todo] in todos:
       tracks_id = None
       if todo['description'] not in remote_todos and todo['tracks_id'] == None:
+        if self.verbose: 
+          print "Adding local todo %s to remote Tracks instance" % todo['description']
         tracks_id = tracks_client.addTodo(todo)
         self.data['todos'][index]['tracks_id'] = str(tracks_id)
       
@@ -88,6 +95,12 @@ class TodotxtParser:
     count = 0
     for todo in self.remote_todos:
       if self.localTodoExists(todo['id']):
+        continue
+
+      # Update the tid on the local todo instead of creating a new record remotely
+      index_of_similar_todo = self.localTodoHasSameDescription(todo['description'])
+      if index_of_similar_todo != False:
+        self.data['todos'][index_of_similar_todo]['tracks_id'] = todo['id']
         continue
 
       new_todo = {}
