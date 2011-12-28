@@ -91,7 +91,7 @@ A task from Tracks @work +bigproject tid:200\
 
   def test_updateTodosDontCreateDuplicateRemoteTodo(self):
     self.todos_data = [
-          {u'description': u'Get things done', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'200'}, 
+          {u'description': u'Get things done', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'205'}, 
           {u'description': u'Another task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'201'}, 
           {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'newproject', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
     ]
@@ -108,7 +108,7 @@ A task from Tracks @work +bigproject tid:200\
     self.parser.load()
     self.assertEqual(self.parser.getTodos(), 
     {
-      1: {'description': 'Get things done', 'completed': None, 'tracks_id': '200', 'project': 'default', 'done': False, 'context': 'home'},
+      1: {'description': 'Get things done', 'completed': None, 'tracks_id': '205', 'project': 'default', 'done': False, 'context': 'home'},
       2: {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
       3: {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
       4: {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
