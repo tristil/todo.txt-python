@@ -58,3 +58,21 @@ class Todo:
       line += ' tid:' + self.data['tracks_id'] 
 
     return line
+
+  def getTextLine(self):
+    line = ''
+    if self.isDone() == True:
+      line += 'x '
+    if self.getCompletedDate() != None:
+      line += self.getCompletedDate() + ' '
+    line += self.getDescription()
+    if self.getContext() != 'default':
+      line += ' @' + self.getContext()
+    if self.getProject() != 'default':
+      line += ' +' + self.getProject() 
+
+    if self.getTracksId() != None:
+      line += ' tid:' + self.getTracksId()
+
+    return line
+

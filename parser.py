@@ -128,8 +128,7 @@ class TodotxtParser:
     return lines[line_number - 1]
 
   def addTodo(self, data, todo_type = 'todo'):
-    todo = Todo()
-    todo.setData(data)
+    todo = Todo(data)
     next_id = self.getNextId()
     if todo_type == 'todo':
       todo.setDone(False)
@@ -290,31 +289,13 @@ class TodotxtParser:
             'tracks_id' : tracks_id
           }
 
-    todo = Todo()
-    todo.setData(row)
+    todo = Todo(row)
     return todo
-
-  def makeLine(self,todo):
-    line = ''
-    if todo.isDone() == True:
-      line += 'x '
-    if todo.getCompletedDate() != None:
-      line += todo.getCompletedDate() + ' '
-    line += todo.getDescription()
-    if todo.getContext() != 'default':
-      line += ' @' + todo.getContext()
-    if todo.getProject() != 'default':
-      line += ' +' + todo.getProject() 
-
-    if todo.getTracksId() != None:
-      line += ' tid:' + todo.getTracksId()
-
-    return line
 
   def getTodoLines(self, type = 'todo'):
     lines = ""
     for [index, todo] in self.data['todos'].items():
-      line = self.makeLine(todo)
+      line = todo.getTextLine()
       if todo.isDone() == True and type =='done':
         lines += line + "\n"
       elif todo.isDone() == False and type == 'todo':
@@ -332,7 +313,7 @@ class TodotxtParser:
     count = 0
     for [index, todo] in todos.items():
       count += 1
-      line = self.makeLine(todo)
+      line = todo.getTextLine()
       todo_file.write(line)
       if count != len(todos):
         todo_file.write('\n')

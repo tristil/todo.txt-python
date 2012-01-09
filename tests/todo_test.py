@@ -17,6 +17,7 @@ class TestTodo(unittest.TestCase):
 
   def test_createTodo(self):
     todo = todotxt.Todo()
+    todo = todotxt.Todo(self.todo_data)
 
   def test_setData(self):
     todo = todotxt.Todo()
