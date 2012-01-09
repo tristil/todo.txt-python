@@ -23,7 +23,7 @@ Major caveats for using this library are:
 
 Usage
 -----
-  ::
+.. code::
   # instantiate the parser
   parser = TodotxtParser(verbose = True)
 
