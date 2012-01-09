@@ -106,15 +106,15 @@ A task from Tracks @work +bigproject tid:200\
     self.assertEqual(self.client.addTodo.call_count, 2)
     self.parser.writeData()
     self.parser.load()
-    self.assertEqual(self.parser.getTodos(), 
-    {
-      1: {'description': 'Get things done', 'completed': None, 'tracks_id': '205', 'project': 'default', 'done': False, 'context': 'home'},
-      2: {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
-      3: {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
-      4: {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
-      5: {'completed': None, 'context': 'home', 'description': 'Fix retrieve password scenarios', 'done': False, 'project': 'newproject', 'tracks_id': '292'},
-      6: {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'}
-    }
+    self.assertEqual([todo.getData() for index, todo in  self.parser.getTodos().items()], 
+    [
+      {'description': 'Get things done', 'completed': None, 'tracks_id': '205', 'project': 'default', 'done': False, 'context': 'home'},
+      {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
+      {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
+      {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
+      {'completed': None, 'context': 'home', 'description': 'Fix retrieve password scenarios', 'done': False, 'project': 'newproject', 'tracks_id': '292'},
+      {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'}
+    ]
     )
 
 
@@ -156,15 +156,15 @@ A task from Tracks @work +bigproject tid:200\
     self.assertEqual(self.client.addTodo.call_count, 3)
     self.parser.writeData()
     self.parser.load()
-    self.assertEqual(self.parser.getTodos(), 
-    {
-      1: {'description': 'Get things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'home'},
-      2: {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
-      3: {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
-      4: {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
-      5: {'completed': None, 'context': 'home', 'description': 'Fix retrieve password scenarios', 'done': False, 'project': 'newproject', 'tracks_id': '292'},
-      6: {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'}
-    }
+    self.assertEqual([todo.getData() for index,todo in self.parser.getTodos().items()], 
+    [
+      {'description': 'Get things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'home'},
+      {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
+      {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
+      {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
+      {'completed': None, 'context': 'home', 'description': 'Fix retrieve password scenarios', 'done': False, 'project': 'newproject', 'tracks_id': '292'},
+      {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'}
+    ]
     )
 
   def test_importAndUpdateContexts(self):
@@ -202,22 +202,22 @@ A task from Tracks @work +bigproject tid:200\
     self.standard_setup()
     self.parser.load()
     self.parser.importFromTracks(self.client)
-    expected_data = {
-        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+    expected_data = [
+        {'context' : 'home', 'project' : 'default', 'done' : False, 
           'description' : 'Get things done', 'completed': None, 'tracks_id' : None},
-        2 : {'context' : 'work', 'project' : 'default', 'done' : False,
+        {'context' : 'work', 'project' : 'default', 'done' : False,
           'description' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
-        3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : False,
           'description' : 'A task from Tracks', 'completed': None, 'tracks_id' : '200'},
-        4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : True,
           'description' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
-        5: {'context': u'home',
+        {'context': u'home',
           'done': False,
           'description': u'Fix retrieve password scenarios',
           'project': u'Diaspora',
           'tracks_id': u'292'},
-        }
-    self.assertEqual(self.parser.getTodos(), expected_data)
+        ]
+    self.assertEqual([todo.getData() for index, todo in self.parser.getTodos().items()], expected_data)
 
 
   def test_importAndWriteData(self):
@@ -269,33 +269,33 @@ Fix retrieve password scenarios @home +Diaspora tid:292
     self.standard_setup()
     self.parser.load()
     self.parser.importFromTracks(self.client)
-    expected_data = {
-        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+    expected_data = [
+        {'context' : 'home', 'project' : 'default', 'done' : False, 
           'description' : 'Get things done', 'completed': None, 'tracks_id' : None},
-        2 : {'context' : 'work', 'project' : 'default', 'done' : False,
+        {'context' : 'work', 'project' : 'default', 'done' : False,
           'description' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
-        3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : False,
           'description' : 'A task from Tracks', 'completed': None, 'tracks_id' : '200'},
-        4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : True,
           'description' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
-        5: {'context': u'home',
+        {'context': u'home',
           'done': False,
           'description': u'Add task text to Chromodoro',
           'project': u'Chromodoro',
           'tracks_id': u'293'
           },
-        6: {'context': u'home',
+        {'context': u'home',
           'done': False,
           'description': u'Fix retrieve password scenarios',
           'project': u'Diaspora',
           'tracks_id': u'292'},
-        7: {'context': u'home',
+        {'context': u'home',
           'done': False,
           'description': u'[Significant coding] for Diaspora',
           'project': u'Diaspora',
           'tracks_id': u'275'},
-        }
-    self.assertEqual(self.parser.getTodos(), expected_data)
+        ]
+    self.assertEqual([todo.getData() for index,todo in self.parser.getTodos().items()], expected_data)
 
   def test_completeTodo(self):
     self.standard_setup()
@@ -330,19 +330,19 @@ Get some other things done @work\
       }
     )
 
-    expected_data = {
-        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+    expected_data = [
+        {'context' : 'home', 'project' : 'default', 'done' : False, 
           'description' : 'Get things done', 'completed': None, 'tracks_id' : None},
-        2 : {'context' : 'work', 'project' : 'default', 'done' : False,
+        {'context' : 'work', 'project' : 'default', 'done' : False,
           'description' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
-        3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : False,
           'description' : 'A task from Tracks', 'completed': None, 'tracks_id': '200'},
-        4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : True,
           'description' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
-        5 : {'description' : 'A brand new thing to do', 'context' : 'newcontext', 'project' : 'newproject', 'done' : False, 'tracks_id' : None}
-    }
+        {'description' : 'A brand new thing to do', 'context' : 'newcontext', 'project' : 'newproject', 'done' : False, 'tracks_id' : None}
+    ]
 
-    self.assertEqual(self.parser.getTodos(), expected_data)
+    self.assertEqual([todo.getData() for index, todo in self.parser.getTodos().items()], expected_data)
     self.assertEqual(self.parser.data['ids'], [1,2,3,4,5])
 
     self.assertEqual(self.parser.getContexts(), {
@@ -382,6 +382,8 @@ A brand new thing to do @newcontext +newproject\
     }
 
     self.parser.setData(data)
+    data = self.parser.getRawData()
+
     self.parser.writeData();
     self.parser.load()
     data = self.parser.getRawData()
@@ -402,23 +404,25 @@ A brand new thing to do @newcontext +newproject\
     self.standard_setup()
     self.parser.load()
     data = self.parser.getRawData()
-    expected_data = {
-      'contexts' : {'home' : [1], 'work' : [2,3,4]},
-      'projects' : {'default' : [1,2], 'bigproject' : [3,4]},
-      'todos' :
-      {
-        1 : {'context' : 'home', 'project' : 'default', 'done' : False, 
+    expected_todos_data = [
+        {'context' : 'home', 'project' : 'default', 'done' : False, 
           'description' : 'Get things done', 'completed': None, 'tracks_id' : None},
-        2 : {'context' : 'work', 'project' : 'default', 'done' : False,
+        {'context' : 'work', 'project' : 'default', 'done' : False,
           'description' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
-        3 : {'context' : 'work', 'project' : 'bigproject', 'done' : False,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : False,
           'description' : 'A task from Tracks', 'completed': None, 'tracks_id' : '200'},
-        4 : {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+        {'context' : 'work', 'project' : 'bigproject', 'done' : True,
           'description' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
-      },
-      'ids' : [1,2,3,4]
-    }
-    self.assertEqual(data, expected_data)
+    ]
+
+    expected_contexts_data = {'home' : [1], 'work' : [2,3,4]}
+    expected_projects_data = {'default' : [1,2], 'bigproject' : [3,4]}
+    expected_ids_data = [1,2,3,4]
+
+    self.assertEqual(data['contexts'], expected_contexts_data)
+    self.assertEqual(data['projects'], expected_projects_data)
+    self.assertEqual(data['ids'], expected_ids_data)
+    self.assertEqual([todo.getData() for index, todo in data['todos'].items()], expected_todos_data)
 
   def test_findUserDirectory(self):
     self.parser.setConfig({

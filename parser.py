@@ -1,4 +1,5 @@
 import os, re, sys, string, time
+from todo import Todo
 
 # A parser to read the todo.txt file
 class TodotxtParser:
@@ -42,14 +43,14 @@ class TodotxtParser:
   def localTodoHasSameDescription(self,description):
     todos = self.getTodos()
     for [index, todo] in todos.items():
-      if todo['description'] == description:
+      if todo.getDescription() == description:
         return index 
     return False
 
   def localTodoExists(self, tracks_id):
     todos = self.getTodos()
     for [index, todo] in todos.items():
-      if todo['tracks_id'] == tracks_id:
+      if todo.getTracksId() == tracks_id:
         return True
     return False
 
@@ -80,11 +81,11 @@ class TodotxtParser:
     todos = self.getTodos().items()
     for [index, todo] in todos:
       tracks_id = None
-      if todo['description'] not in remote_todos and todo['tracks_id'] == None:
+      if todo.getDescription() not in remote_todos and todo.getTracksId() == None:
         if self.verbose: 
           print "Adding local todo %s to remote Tracks instance" % todo['description']
         tracks_id = tracks_client.addTodo(todo)
-        self.data['todos'][index]['tracks_id'] = str(tracks_id)
+        self.data['todos'][index].setAttribute('tracks_id', str(tracks_id))
       
   def importFromTracks(self, tracks_client):
     if self.verbose: 
@@ -100,7 +101,7 @@ class TodotxtParser:
       # Update the tid on the local todo instead of creating a new record remotely
       index_of_similar_todo = self.localTodoHasSameDescription(todo['description'])
       if index_of_similar_todo != False:
-        self.data['todos'][index_of_similar_todo]['tracks_id'] = todo['id']
+        self.data['todos'][index_of_similar_todo].setAttribute('tracks_id', todo['id'])
         continue
 
       new_todo = {}
@@ -127,23 +128,25 @@ class TodotxtParser:
     return lines[line_number - 1]
 
   def addTodo(self, data, todo_type = 'todo'):
+    todo = Todo()
+    todo.setData(data)
     next_id = self.getNextId()
     if todo_type == 'todo':
-      data['done'] = False
+      todo.setDone(False)
     elif todo_type == 'done':
-      data['done'] = True
-      data['completed'] = time.strftime('%Y-%m-%d') 
-    self.data['todos'][next_id] = data
+      todo.setDone()
+      todo.setCompletedDate(time.strftime('%Y-%m-%d'))
+    self.data['todos'][next_id] = todo
     self.data['ids'].append(next_id)
 
     if 'context' not in data:
-      data['context'] = 'default'
+      todo.setContext('default')
 
     if 'tracks_id' not in data:
-      data['tracks_id'] = None
+      todo.setAttribute('tracks_id', None)
 
-    if data['context'] not in self.data['contexts']:
-      self.addContext(data['context'])
+    if todo.getContext() not in self.data['contexts']:
+      self.addContext(todo.getContext())
     self.data['contexts'][data['context']].append(next_id)
 
     if 'project' not in data:
@@ -191,9 +194,9 @@ class TodotxtParser:
     for [index, todo] in todos:
       if todo_type == None:
         todo_set[index] = todo
-      elif todo['done'] == False and todo_type == 'todo':
+      elif todo.isDone() == False and todo_type == 'todo':
         todo_set[index] = todo
-      elif todo['done'] == True and todo_type == 'done':
+      elif todo.isDone() == True and todo_type == 'done':
         todo_set[index] = todo
     return todo_set
 
@@ -225,18 +228,18 @@ class TodotxtParser:
       for item in item_list:
         id += 1
         self.data['ids'].append(id)
-        row = self.parseLine(item)
-        self.data['todos'][id] = row
+        todo = self.parseLine(item)
+        self.data['todos'][id] = todo
 
-        if row['project'] not in self.data['projects']:
-          self.data['projects'][row['project']] = [id]
+        if todo.getProject() not in self.data['projects']:
+          self.data['projects'][todo.getProject()] = [id]
         else:
-          self.data['projects'][row['project']].append(id)
+          self.data['projects'][todo.getProject()].append(id)
 
-        if row['context'] not in self.data['contexts']:
-          self.data['contexts'][row['context']] = [id]
+        if todo.getContext() not in self.data['contexts']:
+          self.data['contexts'][todo.getContext()] = [id]
         else:
-          self.data['contexts'][row['context']].append(id)
+          self.data['contexts'][todo.getContext()].append(id)
 
   def parseLine(self, item):
     pattern = r'@(\w+?)( |$)'
@@ -279,7 +282,6 @@ class TodotxtParser:
       tracks_id = None
     item = re.sub(pattern, '', item).strip()
 
-    
     row = { 'description' : item,
             'done' : done,
             'context' : context,
@@ -287,22 +289,25 @@ class TodotxtParser:
             'completed' : completed,
             'tracks_id' : tracks_id
           }
-    return row
+
+    todo = Todo()
+    todo.setData(row)
+    return todo
 
   def makeLine(self,todo):
     line = ''
-    if todo['done'] == True:
+    if todo.isDone() == True:
       line += 'x '
-    if 'completed' in todo and todo['completed'] != None:
-      line += todo['completed'] + ' '
-    line += todo['description']
-    if todo['context'] != 'default':
-      line += ' @' + todo['context']
-    if todo['project'] != 'default':
-      line += ' +' + todo['project'] 
+    if todo.getCompletedDate() != None:
+      line += todo.getCompletedDate() + ' '
+    line += todo.getDescription()
+    if todo.getContext() != 'default':
+      line += ' @' + todo.getContext()
+    if todo.getProject() != 'default':
+      line += ' +' + todo.getProject() 
 
-    if 'tracks_id' in todo and todo['tracks_id'] != None:
-      line += ' tid:' + todo['tracks_id'] 
+    if todo.getTracksId() != None:
+      line += ' tid:' + todo.getTracksId()
 
     return line
 
@@ -310,9 +315,9 @@ class TodotxtParser:
     lines = ""
     for [index, todo] in self.data['todos'].items():
       line = self.makeLine(todo)
-      if todo['done'] == True and type =='done':
+      if todo.isDone() == True and type =='done':
         lines += line + "\n"
-      elif todo['done'] == False and type == 'todo':
+      elif todo.isDone() == False and type == 'todo':
         lines += line + "\n"
     return lines.strip()
 
@@ -334,6 +339,10 @@ class TodotxtParser:
     todo_file.close()
 
   def setData(self, data):
+    if 'todos' in data:
+      for index, todo in data['todos'].items():
+        data['todos'][index] = Todo(todo)
+        
     self.data = data
 
   def getRawData(self):
