@@ -2,13 +2,12 @@ This is a simple Python library for reading and writing todo.txt files (i.e.,
 the dirt-simple text format used by the `todo.txt bash script <http://todotxt.com>`_ by
 Gina Trapani. Mostly it is an excuse for me to brush up on TDD in Python. 
 
-This library was developed in conjunction with the `tracks-python library
- <https://github.com/tristil/tracks-python>`_, for interfacing with Tracks
-instances (`Tracks <https://github.com/TracksApp/tracks>`_ is a GTD todo list
-web application), and is included as a sub-project in the `Tracks-Sync
-extension <https://github.com/tristil/Todo.txt-Tracks-Sync>`_ for todo.txt. The
-reason for using Python for this integration was to have a todo.txt parsing
-library that wasn't written in Bash but which would run on most Linux servers.
+This library was developed in conjunction with the `tracks-python library <https://github.com/tristil/tracks-python>`_,
+for interfacing with Tracks instances (`Tracks <https://github.com/TracksApp/tracks>`_ 
+is a GTD todo list web application), and is included as a sub-project in the 
+`Tracks-Sync extension <https://github.com/tristil/Todo.txt-Tracks-Sync>`_ for todo.txt. The reason
+for using Python for this integration was to have a todo.txt parsing library
+that wasn't written in Bash but which would run on most Linux servers.
 
 Major caveats for using this library are:
 
