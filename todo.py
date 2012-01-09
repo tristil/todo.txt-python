@@ -6,9 +6,6 @@ class Todo:
     if data:
       self.setData(data)
 
-  def setAttribute(self, key, value):
-    self.data[key] = value
-
   def setData(self, data):
     self.data = data
 
@@ -27,6 +24,12 @@ class Todo:
   def getTracksId(self):
     return self.data['tracks_id']
 
+  def setTracksId(self, tracks_id):
+    if tracks_id == None:
+      self.data['tracks_id'] = None
+    else:
+      self.data['tracks_id'] = str(tracks_id)
+
   def isDone(self):
     return self.data['done']
 
@@ -41,23 +44,6 @@ class Todo:
 
   def setCompletedDate(self, date):
     self.data['completed'] = date
-
-  def getTextLine(self):
-    line = ''
-    if self.data['done'] == True:
-      line += 'x '
-    if 'completed' in self.data and self.data['completed'] != None:
-      line += self.data['completed'] + ' '
-    line += self.data['description']
-    if self.data['context'] != 'default':
-      line += ' @' + self.data['context']
-    if self.data['project'] != 'default':
-      line += ' +' + self.data['project'] 
-
-    if 'tracks_id' in self.data and self.data['tracks_id'] != None:
-      line += ' tid:' + self.data['tracks_id'] 
-
-    return line
 
   def getTextLine(self):
     line = ''

@@ -60,22 +60,34 @@ class TodotxtParser:
 
     added_projects = ['default']
     remote_projects = [remote_project['name'] for remote_project in self.remote_projects]
+
+    new_projects = False
+
     for project in self.getProjects():
       if project not in remote_projects and project not in added_projects:
         if self.verbose: 
           print "Adding local project %s to remote Tracks instance" % project
-
+        new_projects = True
         tracks_client.addProject({'name' : project})
         added_projects.append(project)
+    if new_projects:
+      self.remote_projects = self.remote_client.getProjects()
 
     added_contexts = ['default']
     remote_contexts = [remote_context['name'] for remote_context in self.remote_contexts]
+
+    new_contexts = False
+
     for context in self.getContexts():
       if context not in remote_contexts and context not in added_contexts:
         if self.verbose: 
           print "Adding local context %s to remote Tracks instance" % context
+        new_contexts = True
         tracks_client.addContext({'name' : context})
         added_contexts.append(context)
+
+    if new_contexts:
+      self.remote_contexts = self.remote_client.getContexts()
 
     remote_todos = [remote_todo['description'] for remote_todo in self.remote_todos]
     todos = self.getTodos().items()
@@ -85,7 +97,7 @@ class TodotxtParser:
         if self.verbose: 
           print "Adding local todo %s to remote Tracks instance" % todo.getDescription()
         tracks_id = tracks_client.addTodo(todo)
-        self.data['todos'][index].setAttribute('tracks_id', str(tracks_id))
+        self.data['todos'][index].setTracksId(tracks_id)
       
   def importFromTracks(self, tracks_client):
     if self.verbose: 
@@ -101,7 +113,7 @@ class TodotxtParser:
       # Update the tid on the local todo instead of creating a new record remotely
       index_of_similar_todo = self.localTodoHasSameDescription(todo['description'])
       if index_of_similar_todo != False:
-        self.data['todos'][index_of_similar_todo].setAttribute('tracks_id', todo['id'])
+        self.data['todos'][index_of_similar_todo].setTracksId(todo['id'])
         continue
 
       new_todo = {}
@@ -142,7 +154,7 @@ class TodotxtParser:
       todo.setContext('default')
 
     if 'tracks_id' not in data:
-      todo.setAttribute('tracks_id', None)
+      todo.setTracksId(None)
 
     if todo.getContext() not in self.data['contexts']:
       self.addContext(todo.getContext())
