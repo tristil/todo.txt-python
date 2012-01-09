@@ -83,7 +83,7 @@ class TodotxtParser:
       tracks_id = None
       if todo.getDescription() not in remote_todos and todo.getTracksId() == None:
         if self.verbose: 
-          print "Adding local todo %s to remote Tracks instance" % todo['description']
+          print "Adding local todo %s to remote Tracks instance" % todo.getDescription()
         tracks_id = tracks_client.addTodo(todo)
         self.data['todos'][index].setAttribute('tracks_id', str(tracks_id))
       
