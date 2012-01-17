@@ -89,6 +89,42 @@ A task from Tracks @work +bigproject tid:200\
     self.projects_data = None
     self.contexts_data = None
 
+  def test_updateTodosWithRemoteDoneStatus(self):
+    self.projects_data = [
+        {u'description': u'Pretty big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'newproject'},
+        {u'description': u'Another big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'anotherproject'}
+    ]
+    self.todos_data = [
+        {u'description': u'A task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'completed', u'completed-at' : u'2011-03-16T22:29:54-04:00', 'context': u'work', u'context-id': u'2', u'id': u'200'}, 
+        {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
+    ]
+
+    self.setup_remote_client()
+
+    self.standard_setup()
+    self.parser.load()
+    self.parser.importFromTracks(self.client)
+    expected_data = [
+        {'context' : 'home', 'project' : 'default', 'done' : False, 
+          'description' : 'Get things done', 'completed': None, 'tracks_id' : None},
+        {'context' : 'work', 'project' : 'default', 'done' : False,
+          'description' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
+        {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+          'description' : 'A task from Tracks', 'completed': '2011-03-16', 'tracks_id' : '200'},
+        {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+          'description' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
+        {'context': u'home',
+          'done': False,
+          'description': u'Fix retrieve password scenarios',
+          'project': u'Diaspora',
+          'tracks_id': u'292'},
+        ]
+    self.assertEqual([todo.getData() for index, todo in self.parser.getTodos().items()], expected_data)
+
+
+  def test_updateRemoteTodosWithDoneStatus(self):
+    pass
+
   def test_updateTodosDontCreateDuplicateRemoteTodo(self):
     self.todos_data = [
           {u'description': u'Get things done', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'205'}, 

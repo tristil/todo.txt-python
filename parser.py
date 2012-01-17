@@ -47,11 +47,11 @@ class TodotxtParser:
         return index 
     return False
 
-  def localTodoExists(self, tracks_id):
+  def getTodoByTracksId(self, tracks_id):
     todos = self.getTodos()
     for [index, todo] in todos.items():
       if todo.getTracksId() == tracks_id:
-        return True
+        return index
     return False
 
   def exportToTracks(self, tracks_client, refetch = False):
@@ -106,24 +106,28 @@ class TodotxtParser:
     self.remote_client = tracks_client
     self.fetchRemoteData()
     count = 0
-    for todo in self.remote_todos:
-      if self.localTodoExists(todo['id']):
+    for remote_todo in self.remote_todos:
+      index_of_local_instance = self.getTodoByTracksId(remote_todo['id'])
+      if index_of_local_instance:
+        if remote_todo['state'] == 'completed':
+          self.data['todos'][index_of_local_instance].setDone(True)
+          self.data['todos'][index_of_local_instance].setCompletedDate(remote_todo['completed-at'][0:10])
         continue
 
       # Update the tid on the local todo instead of creating a new record remotely
-      index_of_similar_todo = self.localTodoHasSameDescription(todo['description'])
+      index_of_similar_todo = self.localTodoHasSameDescription(remote_todo['description'])
       if index_of_similar_todo != False:
-        self.data['todos'][index_of_similar_todo].setTracksId(todo['id'])
+        self.data['todos'][index_of_similar_todo].setTracksId(remote_todo['id'])
         continue
 
       new_todo = {}
-      new_todo['tracks_id'] = todo['id']
+      new_todo['tracks_id'] = remote_todo['id']
       for [old_name, new_name] in self.tracks_mapping.items():
         count += 1
-        if old_name in todo:
-          new_todo[new_name] = todo[old_name]
+        if old_name in remote_todo:
+          new_todo[new_name] = remote_todo[old_name]
 
-      if todo['state'] == 'active':
+      if remote_todo['state'] == 'active':
         if self.verbose: 
           print "Adding active todo"
 
