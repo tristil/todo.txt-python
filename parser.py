@@ -29,7 +29,7 @@ class TodotxtParser:
   def completeTodo(self, line_number):
     line = self.getLine(line_number)
     today = time.strftime('%Y-%m-%d') 
-    line = '\nx ' + today + ' ' + line
+    line = '\nx ' + today + ' ' + line + '\n'
     self.removeTodo(line_number)
     todo_file = open(self.getLocation('done'), 'a')
     todo_file.write(line)
@@ -98,6 +98,11 @@ class TodotxtParser:
           print "Adding local todo %s to remote Tracks instance" % todo.getDescription()
         tracks_id = tracks_client.addTodo(todo)
         self.data['todos'][index].setTracksId(tracks_id)
+      elif todo.getTracksId():
+        for remote_todo in self.remote_todos:
+          if remote_todo['id'] == todo.getTracksId():
+            if todo.isDone() and remote_todo['state'] != 'completed':
+              tracks_client.updateTodo(todo)
       
   def importFromTracks(self, tracks_client):
     if self.verbose: 
@@ -198,7 +203,7 @@ class TodotxtParser:
     lines = [line.strip() for line in lines]
     todo_file.close()
     lines.pop(line_number - 1)
-    todo_text = string.join(lines, '\n')
+    todo_text = string.join(lines, '\n') + '\n'
     todo_file = open(self.getLocation('todo'), 'w')
     todo_file.write(todo_text)
     todo_file.close()

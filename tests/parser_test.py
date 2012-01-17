@@ -1,5 +1,5 @@
 import unittest
-import os, sys, shutil, re
+import os, sys, shutil, re, time
 from mock import Mock, MagicMock
 
 sys.path.insert(0, os.path.abspath(os.path.abspath(__file__ )+ "/../../../"))
@@ -85,6 +85,11 @@ A task from Tracks @work +bigproject tid:200\
     add_todo_mock = Mock(return_value=todo_count)
     self.client.addTodo = add_todo_mock
 
+    todo_count = 201
+    update_todo_mock = Mock(return_value=todo_count)
+    self.client.updateTodo = update_todo_mock
+
+
     self.todos_data = None
     self.projects_data = None
     self.contexts_data = None
@@ -123,7 +128,40 @@ A task from Tracks @work +bigproject tid:200\
 
 
   def test_updateRemoteTodosWithDoneStatus(self):
-    pass
+    self.todos_data = [
+          {u'description': u'Get things done', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'205'}, 
+          {u'description': u'Another task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'201'}, 
+          {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'newproject', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
+    ]
+
+    self.setup_remote_client()
+
+    self.standard_setup()
+    self.parser.load()
+    self.parser.completeTodo(1)
+    self.parser.load()
+
+    self.parser.importFromTracks(self.client)
+    self.parser.exportToTracks(self.client)
+
+    self.assertEqual(self.client.addTodo.call_count, 2)
+    self.parser.writeData()
+    self.parser.load()
+
+    today = time.strftime('%Y-%m-%d') 
+
+    self.assertEqual([todo.getData() for index, todo in  self.parser.getTodos().items()], 
+    [
+      {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
+      {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
+      {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
+      {'completed': None, 'context': 'home', 'description': 'Fix retrieve password scenarios', 'done': False, 'project': 'newproject', 'tracks_id': '292'},
+      {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'},
+      {'description': 'Get things done', 'completed': today, 'tracks_id': '205', 'project': 'default', 'done': True, 'context': 'home'},
+    ]
+    )
+
+    self.assertEqual(self.client.updateTodo.call_count, 1)
 
   def test_updateTodosDontCreateDuplicateRemoteTodo(self):
     self.todos_data = [
@@ -339,7 +377,7 @@ Fix retrieve password scenarios @home +Diaspora tid:292
     text = self.read_file(self.todo_file)
     new_text = """\
 Get things done @home
-Get some other things done @work\
+Get some other things done @work
 """
     self.assertEqual(text, new_text)
     text = self.read_file(self.done_file)
@@ -352,7 +390,7 @@ Get some other things done @work\
     text = self.read_file(self.todo_file)
     new_text = """\
 Get things done @home
-Get some other things done @work\
+Get some other things done @work
 """
     self.assertEqual(text, new_text)
 
