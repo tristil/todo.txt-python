@@ -100,7 +100,6 @@ A task from Tracks @work +bigproject tid:200\
         {u'description': u'Another big project\n', u'updated-at': u'2009-01-04T21:53:59-05:00', u'created-at': u'2008-08-17T22:44:18-04:00', u'state': u'completed', u'last-reviewed': u'2008-08-17T22:44:18-04:00', u'position': u'1', u'completed-at': u'2009-01-04T21:53:59-05:00', u'id': u'25', u'name': u'anotherproject'}
     ]
     self.todos_data = [
-        {u'description': u'A task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'completed', u'completed-at' : u'2011-03-16T22:29:54-04:00', 'context': u'work', u'context-id': u'2', u'id': u'200'}, 
         {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'Diaspora', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
     ]
 
@@ -109,13 +108,15 @@ A task from Tracks @work +bigproject tid:200\
     self.standard_setup()
     self.parser.load()
     self.parser.importFromTracks(self.client)
+
+    today = time.strftime('%Y-%m-%d')
     expected_data = [
         {'context' : 'home', 'project' : 'default', 'done' : False, 
           'description' : 'Get things done', 'completed': None, 'tracks_id' : None},
         {'context' : 'work', 'project' : 'default', 'done' : False,
           'description' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
         {'context' : 'work', 'project' : 'bigproject', 'done' : True,
-          'description' : 'A task from Tracks', 'completed': '2011-03-16', 'tracks_id' : '200'},
+          'description' : 'A task from Tracks', 'completed': today, 'tracks_id' : '200'},
         {'context' : 'work', 'project' : 'bigproject', 'done' : True,
           'description' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
         {'context': u'home',
@@ -129,6 +130,7 @@ A task from Tracks @work +bigproject tid:200\
 
   def test_updateRemoteTodosWithDoneStatus(self):
     self.todos_data = [
+          {u'description': u'A task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'200'}, 
           {u'description': u'Get things done', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'205'}, 
           {u'description': u'Another task from Tracks', u'updated-at': u'2011-03-16T22:30:20-04:00', u'created-at': u'2011-03-16T22:30:20-04:00', u'project-id': u'25', 'project': u'bigproject', u'state': u'active', 'context': u'brandnewcontext', u'context-id': u'2', u'id': u'201'}, 
           {u'description': u'Fix retrieve password scenarios', u'tags': u'\n      ', u'notes': u"1) When username doesn't exist\n2) Labels fade out?", u'updated-at': u'2011-03-16T22:29:54-04:00', u'created-at': u'2011-03-15T00:26:15-04:00', u'project-id': u'23', 'project': u'newproject', u'state': u'active', 'context': u'home', u'context-id': u'2', u'id': u'292'}, 
@@ -180,14 +182,17 @@ A task from Tracks @work +bigproject tid:200\
     self.assertEqual(self.client.addTodo.call_count, 2)
     self.parser.writeData()
     self.parser.load()
+
+    today = time.strftime('%Y-%m-%d')
+
     self.assertEqual([todo.getData() for index, todo in  self.parser.getTodos().items()], 
     [
       {'description': 'Get things done', 'completed': None, 'tracks_id': '205', 'project': 'default', 'done': False, 'context': 'home'},
       {'description': 'Get some other things done', 'completed': None, 'tracks_id': '201', 'project': 'default', 'done': False, 'context': 'work'},
-      {'description': 'A task from Tracks', 'completed': None, 'tracks_id': '200', 'project': 'bigproject', 'done': False, 'context': 'work'},
       {'completed': None, 'context': 'brandnewcontext', 'description': 'Another task from Tracks', 'done': False, 'project': 'bigproject', 'tracks_id': '201'},
       {'completed': None, 'context': 'home', 'description': 'Fix retrieve password scenarios', 'done': False, 'project': 'newproject', 'tracks_id': '292'},
-      {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'}
+      {'description': 'A task from Tracks', 'completed': today, 'tracks_id': '200', 'project': 'bigproject', 'done': True, 'context': 'work'},
+      {'description': 'Got things done', 'completed': '2011-10-30', 'tracks_id': '201', 'project': 'bigproject', 'done': True, 'context': 'work'},
     ]
     )
 
@@ -299,7 +304,6 @@ A task from Tracks @work +bigproject tid:200\
     expected_text = """\
 Get things done @home
 Get some other things done @work
-A task from Tracks @work +bigproject tid:200
 Add task text to Chromodoro @home +Chromodoro tid:293
 Fix retrieve password scenarios @home +Diaspora tid:292
 [Significant coding] for Diaspora @home +Diaspora tid:275\
@@ -318,7 +322,6 @@ Fix retrieve password scenarios @home +Diaspora tid:292
     expected_text = """\
 Get things done @home
 Get some other things done @work
-A task from Tracks @work +bigproject tid:200
 Add task text to Chromodoro @home +Chromodoro tid:293
 Fix retrieve password scenarios @home +Diaspora tid:292
 [Significant coding] for Diaspora @home +Diaspora tid:275\
@@ -343,13 +346,14 @@ Fix retrieve password scenarios @home +Diaspora tid:292
     self.standard_setup()
     self.parser.load()
     self.parser.importFromTracks(self.client)
+    today = time.strftime('%Y-%m-%d')
     expected_data = [
         {'context' : 'home', 'project' : 'default', 'done' : False, 
           'description' : 'Get things done', 'completed': None, 'tracks_id' : None},
         {'context' : 'work', 'project' : 'default', 'done' : False,
           'description' : 'Get some other things done', 'completed': None, 'tracks_id' : None},
-        {'context' : 'work', 'project' : 'bigproject', 'done' : False,
-          'description' : 'A task from Tracks', 'completed': None, 'tracks_id' : '200'},
+        {'context' : 'work', 'project' : 'bigproject', 'done' : True,
+          'description' : 'A task from Tracks', 'completed': today, 'tracks_id' : '200'},
         {'context' : 'work', 'project' : 'bigproject', 'done' : True,
           'description' : 'Got things done', 'completed': '2011-10-30', 'tracks_id' : None},
         {'context': u'home',

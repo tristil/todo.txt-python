@@ -146,15 +146,15 @@ class TodotxtParser:
     # Not great, but /todos/done.xml takes too long to parse 
     # without some ability to limit results
     for index, local_todo in self.data['todos'].items():
-      if local_todo.getTracksId() != None:
+      if local_todo.getTracksId() != None and not local_todo.isDone():
         remote_missing = True
         for remote_todo in self.remote_todos:
           if remote_todo['id'] == local_todo.getTracksId():
             remote_missing = False
             break
-      if remote_missing:
-        self.data['todos'][index].setDone(True)
-        self.data['todos'][index].setCompletedDate(time.strftime('%Y-%m-%d'))
+        if remote_missing:
+          self.data['todos'][index].setDone(True)
+          self.data['todos'][index].setCompletedDate(time.strftime('%Y-%m-%d'))
 
   def getLine(self, line_number):
     todo_file = open(self.getLocation('todo'), 'r')
