@@ -349,9 +349,7 @@ class TodotxtParser:
     for [index, todo] in todos.items():
       count += 1
       line = todo.getTextLine()
-      todo_file.write(line)
-      if count != len(todos):
-        todo_file.write('\n')
+      todo_file.write(line + '\n')
     todo_file.close()
 
   def setData(self, data):

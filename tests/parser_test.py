@@ -306,7 +306,7 @@ Get things done @home
 Get some other things done @work
 Add task text to Chromodoro @home +Chromodoro tid:293
 Fix retrieve password scenarios @home +Diaspora tid:292
-[Significant coding] for Diaspora @home +Diaspora tid:275\
+[Significant coding] for Diaspora @home +Diaspora tid:275
 """
     self.parser.writeData()
 
@@ -470,13 +470,13 @@ A brand new thing to do @newcontext +newproject\
     todo_text = f.read()
     f.close()
 
-    self.assertEqual(todo_text, 'Get things done @home')
+    self.assertEqual(todo_text, 'Get things done @home\n')
 
     f = open(self.parser.getLocation('done'), 'r')
     done_text = f.read()
     f.close()
 
-    self.assertEqual(done_text, 'x 2011-10-30 Get some other things done @work')
+    self.assertEqual(done_text, 'x 2011-10-30 Get some other things done @work\n')
 
   def test_getRawData(self):
     self.standard_setup()
