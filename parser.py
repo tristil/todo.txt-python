@@ -165,8 +165,10 @@ class TodotxtParser:
   def addTodo(self, data, todo_type = 'todo'):
     todo = Todo(data)
     # Replace spaces to underscores to avoid todo.txt limitation
-    data['project'] = data['project'].replace(' ','_')
-    data['context'] = data['context'].replace(' ','_')
+    if data['project']:
+      data['project'] = data['project'].replace(' ','_')
+    if data['context']:
+      data['context'] = data['context'].replace(' ','_')
     next_id = self.getNextId()
     if todo_type == 'todo':
       todo.setDone(False)
