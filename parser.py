@@ -164,6 +164,11 @@ class TodotxtParser:
 
   def addTodo(self, data, todo_type = 'todo'):
     todo = Todo(data)
+    # Replace spaces to underscores to avoid todo.txt limitation
+    if data['project']:
+      data['project'] = data['project'].replace(' ','_')
+    if data['context']:
+      data['context'] = data['context'].replace(' ','_')
     next_id = self.getNextId()
     if todo_type == 'todo':
       todo.setDone(False)
@@ -179,8 +184,9 @@ class TodotxtParser:
     if 'tracks_id' not in data:
       todo.setTracksId(None)
 
-    if todo.getContext() not in self.data['contexts']:
-      self.addContext(todo.getContext())
+    # Replace spaces to underscores to avoid todo.txt limitation
+    if todo.getContext().replace(' ','_') not in self.data['contexts']:
+      self.addContext(todo.getContext().replace(' ','_'))
     self.data['contexts'][data['context']].append(next_id)
 
     if 'project' not in data:
@@ -348,7 +354,7 @@ class TodotxtParser:
     count = 0
     for [index, todo] in todos.items():
       count += 1
-      line = todo.getTextLine()
+      line = unicode(todo.getTextLine()).encode('utf8')
       todo_file.write(line + '\n')
     todo_file.close()
 
