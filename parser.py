@@ -348,7 +348,7 @@ class TodotxtParser:
     count = 0
     for [index, todo] in todos.items():
       count += 1
-      line = todo.getTextLine()
+      line = unicode(todo.getTextLine()).encode('utf8')
       todo_file.write(line + '\n')
     todo_file.close()
 
